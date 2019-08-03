@@ -1,0 +1,11 @@
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.rel
+*.ptb
+*.xcp
+*.cut
+auto/
+build/
