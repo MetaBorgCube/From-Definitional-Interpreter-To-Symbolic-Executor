@@ -22,7 +22,7 @@ We have shown how to derive a symbolic executor from a concrete semantics.
 The derivation was driven by an intuitive understanding of what needs to happen in a symbolic executor (instantiating and refining symbolic variables, forking new threads of interpretation) in order to ensure that the symbolic executor explores \emph{all possible execution paths}, but \emph{only} possible execution paths (i.e., no execution paths that do not correspond to an actual execution path).
 In this section we conjecture a correctness proposition for our symbolic evaluator, and discuss directions for making this correctness proposition more formal.
 
-Let |runSteps_s| be a function for that uses the |drive_s| function to drive an expression to a final value and pool of alternative execution paths that may yet yield a final result:
+Let |runSteps_s| be a function that uses the |drive_s| function to drive an expression to a final value and pool of alternative execution paths that may yet yield a final result:
 \begin{code}
 runSteps_s ::  Expr -> Env SymbolicValue ->
                Either String  (SymbolicValue,
