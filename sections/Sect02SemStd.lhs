@@ -34,8 +34,7 @@ mmap = HT.map
 \label{sec:def-interp}
 
 Definitional interpreters define the meaning of a (new) object language by implementing an interpreter for it in an existing, well-understood, language.
-In this paper we use \emph{Haskell} to implement a definitional interpreter for a functional language with pattern matching.
-Pattern match expressions are a simple but general notion of branch points, suitable for our investigation of how to derive a symbolic executor from a definitional interpreter.
+We use \emph{Haskell} to implement a definitional interpreter for a functional language with pattern matching.
 
 \subsection{Syntax}
 The abstract syntax of the language we consider is summarized in \cref{fig:syntax}.

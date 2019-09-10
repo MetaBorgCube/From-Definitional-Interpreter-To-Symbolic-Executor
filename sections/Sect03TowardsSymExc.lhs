@@ -21,9 +21,9 @@ import qualified Control.Monad.Reader as Reader
 \section{Towards a Symbolic Executor}
 \label{sec:towards-sym-exc}
 
-The definitional interpreter presented in \cref{sec:def-interp-standard} uses standard monads and monad transformers to give a semantics for the definitional interpreter in \cref{fig:def-interp}.
+The definitional interpreter presented in \cref{sec:def-interp-standard} uses standard monads and monad transformers to implement the definitional interpreter given in \cref{fig:def-interp}.
 But it gives meta-programmers little control over how interpretation proceeds.
-Our goal in this paper is to implement a symbolic executor for running a program in a way that interleavingly explores all possible execution paths.
+Our goal is to implement a symbolic executor for running a program in a way that interleavingly explores all possible execution paths.
 To this end, we want a symbolic executor that can operate on a pool of concurrently running threads where each thread represents a possible path through the program.
 We will approach this challenge by adopting a small-step execution strategy for each thread.
 In this section we provide alternative type class instances that give meta-programmers more fine-grained control over how interpretation proceeds.
