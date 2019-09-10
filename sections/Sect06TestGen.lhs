@@ -14,13 +14,18 @@ import Sugar
 
 \label{sec:case-study}
 
-The language we have defined a symbolic executor for (syntax in \cref{fig:syntax}) is well-suited for implementing definitional interpreters in.
-In order to test the symbolic executor we have developed, we have defined various interpreters for the simply-typed lambda calculus.
+% The language we have defined a symbolic executor for (syntax in \cref{fig:syntax}) is well-suited for implementing definitional interpreters in.
+In order to test the symbolic executor we have developed, we defined various interpreters for the simply-typed lambda calculus, and attempt to synthesize program terms that yield different results for correct and wrong interpreters.
 Specifically, we have implemented a canonical, environment-based interpreter, and variations on this interpreter with scoping mistakes.
 Symbolic execution is able to automatically synthesize test programs that will detect these mistakes, by looking for programs whose results differ between the correct interpreter and the wrongly-scoped interpreter.
-For brevity, we have omit discussion of these test cases, but the Haskell version of this paper contains the test cases that we invite interested readers to consult.
+For brevity, we omit discussion of these test cases.
+The Haskell version of this paper contains the test cases that we invite interested readers to consult.
 Using GHCi (v8.6.4), symbolic execution takes <1s to synthesize each test program.
 
+\citet{ByrdBRM17} also compare interpreters with lexical and dynamic scope in their functional pearl on using miniKanren to solve programming problems.
+Their implementation is carefully engineered to use miniKanren's relational programming constructs in ways that allow them to yield example terms more efficiently than naively written interpreters would.
+Our case study does not come anyway near the efficiency of the interpreters with lexical and dynamic scope of \citet{ByrdBRM17}, which synthesize 100 example programs with different results in <2s.
+But in our case study we did not attempt to optimize the interpreter implementations either,  neither at the meta-language nor the object-language level, to make it easier for the symbolic execution strategy to find solutions.
 
 %if False
 \begin{code}
@@ -172,7 +177,7 @@ test_eval_neq_evil =
     exists "e" $
       (eval @@ (var "e") @@ nil) !=#= (evil @@ (var "e") @@ nil)
 
--- runConcolic (solve test_eval_neq_evil)
+-- runSymbolic (solve test_eval_neq_evil)
 
 test_eval_neq_evil_app :: Constraint
 test_eval_neq_evil_app =
@@ -180,7 +185,7 @@ test_eval_neq_evil_app =
     exists "e" $
         (eval @@ (ap (ap (var "e") unit) unit) @@ nil) !=#= (evil @@ (ap (ap (var "e") unit) unit) @@ nil)
 
--- runConcolic (solve test_eval_neq_evil_app)
+-- runSymbolic (solve test_eval_neq_evil_app)
 
 
 test_eval_neq_evil' :: Constraint
@@ -189,7 +194,7 @@ test_eval_neq_evil' =
     exists "e" $
       (eval @@ (var "e") @@ nil) !=#= (evil' @@ (var "e") @@ nil)
 
--- runConcolic (solve test_eval_neq_evil')
+-- runSymbolic (solve test_eval_neq_evil')
 
 test_eval_neq_evil'' :: Constraint
 test_eval_neq_evil'' =
@@ -197,7 +202,20 @@ test_eval_neq_evil'' =
     exists "e" $
       (eval @@ (var "e") @@ nil) !=#= (evil'' @@ (var "e") @@ nil)
 
--- runConcolic (solve test_eval_neq_evil'')
+-- runSymbolic (solve test_eval_neq_evil'')
+
+
+----------------------------
+--- palindrome generator ---
+----------------------------
+
+test_pal_gen :: Constraint
+test_pal_gen =
+  grab 10 $
+    exists "p" $
+      (var "p") =#= (kreverse @@ var "p")
+
+-- runSymbolic (solve test_pal_gen)
 
 \end{code}
 %endif

@@ -38,7 +38,7 @@ In this paper we use \emph{Haskell} to implement a definitional interpreter for 
 Pattern match expressions are a simple but general notion of branch points, suitable for our investigation of how to derive a symbolic executor from a definitional interpreter.
 
 \subsection{Syntax}
-The abstract syntax of the language that we consider is summarized in \cref{fig:syntax}.
+The abstract syntax of the language we consider is summarized in \cref{fig:syntax}.
 The expression constructors for |Var|, |Lam|, and |App| are standard expressions for variables, unary functions, and function application.
 An expression constructor expression |Con f [e_1, ..., e_n]| represents an |n|-ary term whose head symbol is |f|, and whose sub-term values are the results of evaluating each expression |e_1...e_n|.
 |Case e [(p_1, e_1), ..., (p_n, e_n)]| is a pattern match expression which first evaluates |e| to a value and then attempts to match the resulting value against the patterns |p_1...p_n|, where patterns are given by the type |Patt|.
@@ -165,8 +165,9 @@ interpval nv (VCon x es)  =
 \label{sec:prelude}
 
 The definitional interpreter for the language we consider in this paper is given in \cref{fig:def-interp}.
-The interpreter depends on the |EffVal| type class which in turn depends on a number of type classes that define the notion of effects and values of the interpreter.
-We summarize these type classes.
+The interpreter depends on the |EffVal| type class which in turn depends on a number of type classes that constrain the polymorphic notion of effects (defined by a monad |m|) and values (defined by a value type |val|) of the interpreter.
+The |EffVal| type class is thus a polymorphic embedding~\cite{HoferORM08} of a language that allows us to define a \emph{family} of interpreters for the same language, akin to the finally tagless approach of \citet{CaretteKS09}.
+We summarize the type classes that |EffVal| comprises.
 
 \paragraph{Effects}
 
@@ -188,7 +189,7 @@ There are two reasons why we use a specialized version.
 The reason we specialize the type of environments, as opposed to an arbitrary type |r|, is to help Haskell's type class instance resolution engine (using GHC v8.6.4).
 The reason we insist that the return type is |val| for the computation that |local| takes as argument, is a desire to know that this particular computation is value-producing, for reasons we explain \cref{sec:towards-sym-exc}.
 
-Our goal is to derive symbolic executors from definitional interpreters.
+% Our goal is to derive symbolic executors from definitional interpreters.
 The purpose of symbolic execution is to decide which inputs cause which parts of a program to execute.
 For this reason, we treat conditional branching as an effect.
 The following type class constrains a monad |m| to provide a generic operation for branching:
@@ -275,7 +276,8 @@ instance MonadMatch  ConcreteValue Cases
       Nothing -> match v (Cases bs)
   match _ (Cases []) = throwError "Match failure"
 
-vmatch :: (ConcreteValue, Patt) -> Maybe (Env ConcreteValue)
+vmatch ::  (ConcreteValue, Patt) ->
+           Maybe (Env ConcreteValue)
 \end{code}
 %if False
 \begin{code}

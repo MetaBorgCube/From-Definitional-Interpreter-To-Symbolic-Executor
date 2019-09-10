@@ -1,5 +1,5 @@
 %% For double-blind review submission, w/o CCS and ACM Reference (max submission space)
-\documentclass[sigplan,10pt,review]{acmart}
+\documentclass[sigplan,screen]{acmart}
 \settopmatter{printfolios=true,printccs=false,printacmref=false}
 %% For double-blind review submission, w/ CCS and ACM Reference
 %\documentclass[sigplan,review,anonymous]{acmart}\settopmatter{printfolios=true}
@@ -12,14 +12,23 @@
 
 %include polycode.fmt
 
-%% Conference information
-%% Supplied to authors by publisher for camera-ready submission;
-%% use defaults for review submission.
-\acmConference[PL'18]{ACM SIGPLAN Conference on Programming Languages}{January 01--03, 2018}{New York, NY, USA}
-\acmYear{2018}
-\acmISBN{} % \acmISBN{978-x-xxxx-xxxx-x/YY/MM}
-\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
-\startPage{1}
+%%% If you see 'ACMUNKNOWN' in the 'setcopyright' statement below,
+%%% please first submit your publishing-rights agreement with ACM (follow link on submission page).
+%%% Then please update our instructions page and copy-and-paste the NEW commands into your article.
+%%% Please contact us in case of questions; allow up to 10 min for the system to propagate the information.
+%%%
+%%% The following is specific to META '19 and the paper
+%%% 'From Definitional Interpreter to Symbolic Executor'
+%%% by Adrian D. Mensing, Hendrik van Antwerpen, Casper Bach Poulsen, and Eelco Visser.
+%%%
+\setcopyright{rightsretained}
+\acmPrice{}
+\acmDOI{10.1145/3358502.3361269}
+\acmYear{2019}
+\copyrightyear{2019}
+\acmISBN{978-1-4503-6985-5/19/10}
+\acmConference[META '19]{Proceedings of the 4th ACM SIGPLAN International Workshop on Meta-Programming Techniques and Reflection}{October 20, 2019}{Athens, Greece}
+\acmBooktitle{Proceedings of the 4th ACM SIGPLAN International Workshop on Meta-Programming Techniques and Reflection (META '19), October 20, 2019, Athens, Greece}
 
 %% Copyright information
 %% Supplied to authors (based on authors' rights management selection;
@@ -62,6 +71,9 @@
                         %% http://ctan.org/pkg/subcaption
 \usepackage{cleveref}
 \usepackage{boxedminipage2e}
+
+\crefname{section}{\S}{\S\S}
+\crefname{figure}{Fig.}{Fig.}
 
 \begin{document}
 
@@ -115,19 +127,6 @@
 }
 \email{h.vanantwerpen@@tudelft.nl}
 
-\author{Eelco Visser}
-\affiliation{
-  % \position{...}
-  % \department{}              %% \department is recommended
-  \institution{Delft University of Technology}            %% \institution is required
-  % \streetaddress{Street1 Address1}
-  % \city{City1}
-  % \state{State1}
-  % \postcode{Post-Code1}
-  \country{Netherlands}                    %% \country is recommended
-}
-\email{e.visser@@tudelft.nl}          %% \email is recommended
-
 \author{Casper Bach Poulsen}
 \affiliation{
   % \position{...}
@@ -140,6 +139,19 @@
   \country{Netherlands}                    %% \country is recommended
 }
 \email{c.b.poulsen@@tudelft.nl}          %% \email is recommended
+
+\author{Eelco Visser}
+\affiliation{
+  % \position{...}
+  % \department{}              %% \department is recommended
+  \institution{Delft University of Technology}            %% \institution is required
+  % \streetaddress{Street1 Address1}
+  % \city{City1}
+  % \state{State1}
+  % \postcode{Post-Code1}
+  \country{Netherlands}                    %% \country is recommended
+}
+\email{e.visser@@tudelft.nl}          %% \email is recommended
 
 
 % \authornote{Delft University of Technology}          %% \authornote is optional;
@@ -190,7 +202,7 @@
 \begin{abstract}
 Symbolic execution is a technique for automatic software validation and verification.
 New symbolic executors regularly appear for both existing and new languages and such symbolic executors are generally manually (re)implemented each time we want to support a new language.
-We propose to automatically generate symbolic executors from language definitions, and present a technique for mechanically (but as of yet, manually) deriving a symbolic executor from a definitional interpreter.
+We propose to automatically generate symbolic executors from language definitions, and present a technique for mechanically (but as yet, manually) deriving a symbolic executor from a definitional interpreter.
 The idea is that language designers define their language as a monadic definitional interpreter, where the monad of the interpreter defines the meaning of branch points.
 Developing a symbolic executor for a language is a matter of changing the monadic interpretation of branch points.
 Our long-term goal is to integrate these techniques in language development workbenches and workflows, to make developer-boosting meta-programming techniques such as symbolic execution readily and automatically available to language designers and software developers.
@@ -203,20 +215,26 @@ In this paper, we illustrate the technique on a language with recursive function
 \begin{CCSXML}
 <ccs2012>
 <concept>
-<concept_id>10011007.10011006.10011008</concept_id>
-<concept_desc>Software and its engineering~General programming languages</concept_desc>
+<concept_id>10003752.10010124.10010125.10010129</concept_id>
+<concept_desc>Theory of computation~Program schemes</concept_desc>
 <concept_significance>500</concept_significance>
 </concept>
 <concept>
-<concept_id>10003456.10003457.10003521.10003525</concept_id>
-<concept_desc>Social and professional topics~History of programming languages</concept_desc>
+<concept_id>10011007.10010940.10010992.10010998</concept_id>
+<concept_desc>Software and its engineering~Formal methods</concept_desc>
 <concept_significance>300</concept_significance>
+</concept>
+<concept>
+<concept_id>10011007.10011074.10011092.10011782</concept_id>
+<concept_desc>Software and its engineering~Automatic programming</concept_desc>
+<concept_significance>100</concept_significance>
 </concept>
 </ccs2012>
 \end{CCSXML}
 
-\ccsdesc[500]{Software and its engineering~General programming languages}
-\ccsdesc[300]{Social and professional topics~History of programming languages}
+\ccsdesc[500]{Theory of computation~Program schemes}
+\ccsdesc[300]{Software and its engineering~Formal methods}
+\ccsdesc[100]{Software and its engineering~Automatic programming}
 %% End of generated code
 
 
@@ -247,22 +265,15 @@ In this paper, we illustrate the technique on a language with recursive function
 
 %include sections/Sect07conclusion.lhs
 
-% %% Acknowledgments
-% \begin{acks}                            %% acks environment is optional
-%                                         %% contents suppressed with 'anonymous'
-%   %% Commands \grantsponsor{<sponsorID>}{<name>}{<url>} and
-%   %% \grantnum[<url>]{<sponsorID>}{<number>} should be used to
-%   %% acknowledge financial support and will be used by metadata
-%   %% extraction tools.
-%   This material is based upon work supported by the
-%   \grantsponsor{GS100000001}{National Science
-%     Foundation}{http://dx.doi.org/10.13039/100000001} under Grant
-%   No.~\grantnum{GS100000001}{nnnnnnn} and Grant
-%   No.~\grantnum{GS100000001}{mmmmmmm}.  Any opinions, findings, and
-%   conclusions or recommendations expressed in this material are those
-%   of the author and do not necessarily reflect the views of the
-%   National Science Foundation.
-% \end{acks}
+%% Acknowledgments
+\begin{acks}                            %% acks environment is optional
+                                        %% contents suppressed with 'anonymous'
+  %% Commands \grantsponsor{<sponsorID>}{<name>}{<url>} and
+  %% \grantnum[<url>]{<sponsorID>}{<number>} should be used to
+  %% acknowledge financial support and will be used by metadata
+  %% extraction tools.
+  We thank the anonymous reviewers for their insightful suggestions for improvements and future research directions, and Sven Keidel for his timely and helpful comments. 
+\end{acks}
 
 
 %% Bibliography

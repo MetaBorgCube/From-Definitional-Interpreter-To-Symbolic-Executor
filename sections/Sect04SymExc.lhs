@@ -34,10 +34,10 @@ import Debug.Trace
 
 In this section we derive a symbolic executor from the definitional interpreter in \cref{sec:towards-sym-exc}, by: (1) generalizing the notion of value from previous sections to also incorporate symbolic variables; and (2) generalizing the semantics (monad and small-step transition function) to support instantiation of symbolic variables and fork new threads of interpretation.
 
-\paragraph{Symbolic Values} The updated notion of value is an extension of the notion of |ConcreteValue| data type from \cref{sec:def-interp-standard} with a symbolic variable constructor, |SymV|:\footnote{\emph{Concolic} is a contraction of \emph{concrete} and \emph{symbolic}.}
+\paragraph{Symbolic Values} The updated notion of value is an extension of the notion of |ConcreteValue| data type from \cref{sec:def-interp-standard} with a symbolic variable constructor, |SymV|:
 \begin{code}
-data ConcolicValue  =  ConV'   String [ConcolicValue]
-                    |  ClosV'  String Expr (Env ConcolicValue)
+data SymbolicValue  =  ConV'   String [SymbolicValue]
+                    |  ClosV'  String Expr (Env SymbolicValue)
                     |  SymV    String
 \end{code}
 %if False
@@ -45,10 +45,10 @@ data ConcolicValue  =  ConV'   String [ConcolicValue]
                    deriving Show
                    deriving Eq
 
-instance TermVal ConcolicValue where
+instance TermVal SymbolicValue where
   con_v = ConV'
 
-instance FunVal ConcolicValue where
+instance FunVal SymbolicValue where
   clos_v = ClosV'
 \end{code}
 %endif
@@ -59,35 +59,37 @@ instance FunVal ConcolicValue where
 The monad for evaluating a step of symbolic execution has an environment and may raise an exception, just like the monad in \cref{sec:towards-sym-exc} for evaluating a step of concrete execution.
 Additionally, the monad has a stateful |Int| field for keeping track of a fresh supply of symbolic variable names:
 \begin{code}
-type ConcolicMonad =
-  ReaderT  (Env ConcolicValue)
+type SymbolicMonad =
+  ReaderT  (Env SymbolicValue)
            (StateT Int (Except String))
 \end{code}
 Since symbolic execution should explore all possible execution paths through a program, we generalize the small-step transition relation from \cref{sec:towards-sym-exc} by letting the transition relation take a single thread of interpretation as input, but return a \emph{set} of possible continuation threads.
 Each step may result in unifying a symbolic variable in order to explore a possible execution path.
 Our generalized notion of monad is thus given by the following types:
 \begin{code}
-type Unifier   = [(String, ConcolicValue)]
-type Unifier_N = [(ConcolicValue, ConcolicValue)]
-type ConcolicSetMonad =
-  StateT (Unifier, Unifier_N) (ListT ConcolicMonad)
+type Unifier   = [(String, SymbolicValue)]
+type Unifier_N = [(SymbolicValue, SymbolicValue)]
+type SymbolicSetMonad =
+  StateT (Unifier, Unifier_N) (ListT SymbolicMonad)
 \end{code}
 Here, |Unifier| witnesses how symbolic variables must be instantiated in order to complete a single transition step, representing a particular execution path of the program being symbolically executed.
 |Unifier_N| represents a set of \emph{negative unification constraints}.
 We motivate the use and need for these shortly.
-The |ListT| monad generalizes the return type of a monadic computation |m a| to return a list of |a|s; i.e., |m [a]|.
+The |ListT| monad transformer generalizes the return type of a monadic computation |m a| to return a list of |a|s; i.e., |m [a]|.
+Note that, although we call |ListT| a monad transformer, it is well-known that |ListT| in Haskell is not guaranteed to yield a monad that satisfies the monad laws.
+For the purpose of this paper, it is not essential whether the particular definition of |SymbolicSetMonad| above actually satisfies the monad laws.
 
 \paragraph{Small-Step Transition Function}
 
-Our symbolic executor is derived from the concrete semantics of effects \cref{sec:towards-sym-exc} by altering how we |Match| and |Eq_c| effects are interpreted.
+Our symbolic executor is derived from the concrete semantics of effects in \cref{sec:towards-sym-exc} by altering how we |Match| and |Eq_c| effects are interpreted.
 Thus all cases of the transition function |step_s| (below) are identical to the small-step transition function from \cref{sec:towards-sym-exc}, except for the cases for the |Match| and |Eq_c|.
 Furthermore, the definitional interpreter from \cref{fig:def-interp} is unchanged.
-We summarize the interesting cases for the |step_s| function, which takes a symbolic interpretation thread, |Thread_s|, as input, and returns a \emph{set} of threads (note the use of |ConcolicSetMonad|):
+We summarize the interesting cases for the |step_s| function, which takes a symbolic interpretation thread, |Thread_s|, as input, and returns a \emph{set} of threads (note the use of |SymbolicSetMonad|):
 \begin{code}
-type Thread_s = Free (Cmd ConcolicValue)
+type Thread_s = Free (Cmd SymbolicValue)
 
-step_s ::  Thread_s ConcolicValue ->
-           ConcolicSetMonad (Thread_s ConcolicValue)
+step_s ::  Thread_s SymbolicValue ->
+           SymbolicSetMonad (Thread_s SymbolicValue)
 step_s (Step (Match _ (Cases [])) _) = mzero
 step_s (Step (Match v (Cases ((p, m) : bs))) k) = (do
     (nv, u) <- vmatch_s (v, p)
@@ -107,7 +109,7 @@ As in \cref{sec:towards-sym-exc}, there are two cases for |Match|: one for the c
 In case we have exhausted the list of patterns to match a value against, we now use |mzero| to return an empty set of result threads.
 Otherwise, we match a value against a pattern, using the side-effectful |vmatch_s| function  (elided for brevity).
 If the value contains symbolic variables, the |vmatch_s| function computes a unifier to be be applied to the symbolic variables in order to make the pattern match succeed.
-The transition function returns the thread resulting from applying that unifier to the matched branch, unioned with (via the |`mplus`| operation of the |ConcolicSetMonad|) any other threads contained in branches with patterns that may succeed to match (via the recursive call to |step_s| in the second |Match| case above).
+The transition function returns the thread resulting from applying that unifier to the matched branch, unioned with (via the |`mplus`| operation of the |SymbolicSetMonad|) any other threads contained in branches with patterns that may succeed to match (via the recursive call to |step_s| in the second |Match| case above).
 This way, the transition function computes the set of all possible execution paths for a given expression.
 
 The case of the |step_s| function above for expressions of the form |Eq_c v_1 v_2| checks whether |v_1| and |v_2| are unifiable.
@@ -139,7 +141,7 @@ step_s (Step (Fail s) _) =
 --- auxiliary functions ---
 ---------------------------
 
-unify :: ConcolicValue -> ConcolicValue -> Maybe Unifier
+unify :: SymbolicValue -> SymbolicValue -> Maybe Unifier
 unify v1             v2             | v1 == v2 =
   return []
 unify (ConV' s1 vs1) (ConV' s2 vs2) | s1 == s2 =
@@ -155,7 +157,7 @@ unify (SymV x)       t            | occurs x t = Nothing
 unify (SymV x)       v            = return [(x, v)]
 unify _              _            = Nothing
 
-occurs :: String -> ConcolicValue -> Bool
+occurs :: String -> SymbolicValue -> Bool
 occurs x (SymV y)      | x == y = True
 occurs _ (SymV _)      = False
 occurs x (ConV' _ vs)  =
@@ -163,11 +165,11 @@ occurs x (ConV' _ vs)  =
 occurs x (ClosV' _ _ nv) =
   occursnv x nv
 
-occursnv :: String -> Env ConcolicValue -> Bool
+occursnv :: String -> Env SymbolicValue -> Bool
 occursnv x nv = do
   foldl (\ b (_, v) -> b || occurs x v) False nv
 
-subst :: (String, ConcolicValue) -> ConcolicValue -> ConcolicValue
+subst :: (String, SymbolicValue) -> SymbolicValue -> SymbolicValue
 subst (y, v) (SymV x)        = if x == y then v else (SymV x)
 subst (x, v) (ConV' s args)  =
   ConV' s (map (subst (x, v)) args)
@@ -178,8 +180,8 @@ subst (x, v) (ClosV' y e nv) =
 mapTuple :: (a -> b) -> (a, a) -> (b, b)
 mapTuple f (x, y) = (f x, f y)
 
-mapCmd_v ::  (ConcolicValue -> ConcolicValue) ->
-             Cmd ConcolicValue a -> Cmd ConcolicValue a
+mapCmd_v ::  (SymbolicValue -> SymbolicValue) ->
+             Cmd SymbolicValue a -> Cmd SymbolicValue a
 mapCmd_v f (Match v (Cases bs)) =
   Match (f v) (Cases (map (mapSnd (mapFree_v f)) bs))
 mapCmd_v f (Local g t) =
@@ -191,12 +193,12 @@ mapCmd_v f (Eq_c v_1 v_2) =
   Eq_c (f v_1) (f v_2)
 mapCmd_v _ (Fail s) = Fail s
 
-mapFree_v ::  (ConcolicValue -> ConcolicValue) ->
-              Thread_s ConcolicValue -> Thread_s ConcolicValue
+mapFree_v ::  (SymbolicValue -> SymbolicValue) ->
+              Thread_s SymbolicValue -> Thread_s SymbolicValue
 mapFree_v f (Stop a)    = Stop (f a)
 mapFree_v f (Step c k)  = Step (mapCmd_v f c) (fmap f . k)
 
-instance Show (Thread_s ConcolicValue) where
+instance Show (Thread_s SymbolicValue) where
   show (Stop x) = "Stop " ++ show x
   show (Step (Match v (Cases bs)) k) = "Step (Match " ++ show v ++ " (Cases " ++ show bs ++ "))"
   show (Step (Local g t) k) = "Step (Local {-...-} " ++ show t ++ ")"
@@ -210,19 +212,19 @@ instance Show (Thread_s ConcolicValue) where
 --- monadic helper functions ---
 --------------------------------
 
-applySubst :: Unifier -> Thread_s ConcolicValue -> ConcolicSetMonad (Thread_s ConcolicValue)
+applySubst :: Unifier -> Thread_s SymbolicValue -> SymbolicSetMonad (Thread_s SymbolicValue)
 applySubst u t = do
   (u_0, nu) <- get
   put (u_0 ++ u, nu)
   return t
 
-constrainUnif_N :: Unifier -> Thread_s ConcolicValue -> ConcolicSetMonad (Thread_s ConcolicValue)
+constrainUnif_N :: Unifier -> Thread_s SymbolicValue -> SymbolicSetMonad (Thread_s SymbolicValue)
 constrainUnif_N u t = do
   (u_0, nu) <- get
   put (u_0, nu ++ map (mapFst SymV) u)
   return t
 
-valify :: Patt -> ConcolicSetMonad ConcolicValue
+valify :: Patt -> SymbolicSetMonad SymbolicValue
 valify (PVar _) = do
   y <- fresh
   return (SymV y)
@@ -230,7 +232,7 @@ valify (PCon s ps) = do
   vs <- mmap valify ps
   return (ConV' s vs)
 
-fresh :: ConcolicSetMonad String
+fresh :: SymbolicSetMonad String
 fresh = StateT $ \ s ->
   ListT $
   Reader.ReaderT $ \ _ -> do
@@ -238,18 +240,18 @@ fresh = StateT $ \ s ->
   put (i + 1)
   return [(("_" ++ show (i + 1)), s)]
 
-fresh' :: ConcolicMonad String
+fresh' :: SymbolicMonad String
 fresh' = do
   i <- get
   put (i + 1)
   return ("_" ++ show (i + 1))
 
-vmatch_s :: (ConcolicValue, Patt) ->
-            ConcolicSetMonad (Env ConcolicValue, Unifier)
+vmatch_s :: (SymbolicValue, Patt) ->
+            SymbolicSetMonad (Env SymbolicValue, Unifier)
 vmatch_s (v, p) = vsmatch [v] [p]
 
-vsmatch ::  [ConcolicValue] -> [Patt] ->
-            ConcolicSetMonad (Env ConcolicValue, Unifier)
+vsmatch ::  [SymbolicValue] -> [Patt] ->
+            SymbolicSetMonad (Env SymbolicValue, Unifier)
 vsmatch [] (_:_) = throwError "Pattern match failure"
 vsmatch (_:_) [] = throwError "Pattern match failure"
 vsmatch []    [] = return ([], [])
@@ -278,11 +280,11 @@ vsmatch v _ =
 
 The driver loop for symbolic execution is generalized to operate on \emph{sets} of possible execution paths, where each execution path is given by a configuration |Config_s|:
 \begin{code}
-type Config_s a = (a, Env ConcolicValue, Unifier_N)
+type Config_s a = (a, Env SymbolicValue, Unifier_N)
 
-drive_s ::  [Config_s (Thread_s ConcolicValue)] ->
-            ConcolicMonad  (Config_s ConcolicValue,
-                           [Config_s (Thread_s ConcolicValue)])
+drive_s ::  [Config_s (Thread_s SymbolicValue)] ->
+            SymbolicMonad  (Config_s SymbolicValue,
+                           [Config_s (Thread_s SymbolicValue)])
 drive_s [] = throwError "No solution found"
 drive_s ts =
   case isDone ts of
@@ -308,8 +310,8 @@ If none of the input configurations are values already, each input configuration
                       _      -> (Nothing, (t, nv, nu) : ts'))
             (Nothing, [])
             ts
-    iterate ::  [Config_s (Thread_s ConcolicValue)] ->
-                ConcolicMonad [Config_s (Thread_s ConcolicValue)]
+    iterate ::  [Config_s (Thread_s SymbolicValue)] ->
+                SymbolicMonad [Config_s (Thread_s SymbolicValue)]
     iterate ts =
       foldr (\ (t, nv, nu) ts' ->
                catchError (do ts0 <- Reader.local (\ _ -> nv) (runStep_s (step_s t) nu)
@@ -319,9 +321,9 @@ If none of the input configurations are values already, each input configuration
             (return [])
             ts
 
-runStep_s ::  ConcolicSetMonad (Thread_s ConcolicValue) ->
+runStep_s ::  SymbolicSetMonad (Thread_s SymbolicValue) ->
               Unifier_N ->
-              ConcolicMonad [Config_s (Thread_s ConcolicValue)]
+              SymbolicMonad [Config_s (Thread_s SymbolicValue)]
 runStep_s p nu = do
   r <- runListT (runStateT p ([], nu))
   nv <- ask
@@ -337,13 +339,13 @@ runStep_s p nu = do
         r
   
 
-runConcolic :: ConcolicMonad a -> Either String a
-runConcolic m = fmap fst (runExcept (runStateT (runReaderT m []) 0))
+runSymbolic :: SymbolicMonad a -> Either String a
+runSymbolic m = fmap fst (runExcept (runStateT (runReaderT m []) 0))
 
-runSteps_s ::  Expr -> Env ConcolicValue ->
-               Either String (ConcolicValue, [Config_s (Thread_s ConcolicValue)])
+runSteps_s ::  Expr -> Env SymbolicValue ->
+               Either String (SymbolicValue, [Config_s (Thread_s SymbolicValue)])
 runSteps_s e nv = fmap (mapFst (\ (v, _, _) -> v))
-                       (runConcolic (drive_s [(interp e, nv, [])]))
+                       (runSymbolic (drive_s [(interp e, nv, [])]))
 \end{code}
 %endif
 
@@ -378,16 +380,16 @@ data ExConstraint  =  CEx String ExConstraint
 \end{figure}
 
 Our approach to constraint solving is given by the |solve| function in \cref{fig:constraint-solving} which, in turn, calls the |search_s| function whose type signature is shown in the figure, but whose implementation we omit for brevity.
-|search_s e ts ceq n| implements a naive constraint solving strategy which uses a symbolic executor to search for |n| different instantiations of symbolic variables that make the result of symbolic execution of the input expression |e| equal to the result of symbolic execution of a configuration in |ts|, modulo a custom notion of |ConcolicEquality|.
+|search_s e ts ceq n| implements a naive constraint solving strategy which uses a symbolic executor to search for |n| different instantiations of symbolic variables that make the result of symbolic execution of the input expression |e| equal to the result of symbolic execution of a configuration in |ts|, modulo a custom notion of |SymbolicEquality|.
 
 \begin{figure}
 \begin{boxedminipage}{\linewidth}
 \begin{code}
-solve :: Constraint -> ConcolicMonad [Env ConcolicValue]
+solve :: Constraint -> SymbolicMonad [Env SymbolicValue]
 solve (CTake n c_x) = solve_x c_x n
 
 solve_x ::  ExConstraint -> Int ->
-            ConcolicMonad [Env ConcolicValue]
+            SymbolicMonad [Env SymbolicValue]
 solve_x (CEx x c_x) n = do
   n_x <- fresh'
   Reader.local (\ nv -> (x, SymV n_x) : nv) (solve_x c_x n)
@@ -402,14 +404,14 @@ solve_x (CNEq e_1 e_2) n = do
                              Nothing  -> Just [])
             n
 
-type ConcolicEq =
-  ConcolicValue -> ConcolicValue -> Maybe Unifier
+type SymbolicEq =
+  SymbolicValue -> SymbolicValue -> Maybe Unifier
 
 search_s ::  Expr ->
-             [Config_s (Thread_s ConcolicValue)] ->
-             ConcolicEq ->
+             [Config_s (Thread_s SymbolicValue)] ->
+             SymbolicEq ->
              Int ->
-             ConcolicMonad [Env ConcolicValue]
+             SymbolicMonad [Env SymbolicValue]
 \end{code}
 %if False
 \begin{code}
@@ -422,11 +424,11 @@ search_s e ts_2 ceq n = do
   nvs' <- search_s e ts_2' ceq (n - length nvs)
   return (nvs ++ nvs')
 
-match_s ::  [Config_s (Thread_s ConcolicValue)] ->
-            ConcolicValue ->
-            ConcolicEq ->
+match_s ::  [Config_s (Thread_s SymbolicValue)] ->
+            SymbolicValue ->
+            SymbolicEq ->
             Int ->
-            ConcolicMonad [Env ConcolicValue]
+            SymbolicMonad [Env SymbolicValue]
 match_s _    _   _   n | n <= 0 = return []
 match_s ts_1 v_2 ceq n = (do
     ((v_1, nv_1, _), ts_1') <- drive_s ts_1
@@ -508,7 +510,7 @@ Solving the |append02| constraint yields the 6 different possible instantiations
 
 %if False
 \begin{code}
-ex02 = runConcolic (solve append02)
+ex02 = runSymbolic (solve append02)
 \end{code}
 %endif
 

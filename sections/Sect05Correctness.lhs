@@ -7,7 +7,7 @@ module Sect05Correctness where
 
 import Sect02SemStd
 
-data ConcolicValue where      -- fake
+data SymbolicValue where      -- fake
 data Thread_s :: * -> * where -- fake
 data Config_s :: * -> * where -- fake
 
@@ -24,9 +24,9 @@ In this section we conjecture a correctness proposition for our symbolic evaluat
 
 Let |runSteps_s| be a function for that uses the |drive_s| function to drive an expression to a final value and pool of alternative execution paths that may yet yield a final result:
 \begin{code}
-runSteps_s ::  Expr -> Env ConcolicValue ->
-               Either String  (ConcolicValue,
-                              [Config_s (Thread_s ConcolicValue)])
+runSteps_s ::  Expr -> Env SymbolicValue ->
+               Either String  (SymbolicValue,
+                              [Config_s (Thread_s SymbolicValue)])
 \end{code}
 %if False
 \begin{code}
@@ -35,7 +35,7 @@ runSteps_s = error "fake"
 %endif
 We conjecture that, for any pair of concrete environment |nv| and symbolic environment |nv_s| that are equal up-to-unification:
 \begin{enumerate}
-\item Any concrete execution path, given by calling |runSteps| from \cref{sec:towards-sym-exc} under |nv| with any |e :: Expr| either yields a value that is equal up-to-unification to the |ConcolicValue| that |runSteps_s| returns; or yields a value that one of the configurations in |runSteps_s| will eventually yield, if we were to iterate that configuration.
+\item Any concrete execution path, given by calling |runSteps| from \cref{sec:towards-sym-exc} under |nv| with any |e :: Expr| either yields a value that is equal up-to-unification to the |SymbolicValue| that |runSteps_s| returns; or yields a value that one of the configurations in |runSteps_s| will eventually yield, if we were to iterate that configuration.
 \item Any symbolic execution path, given by calling |runSteps_s| under |nv_s| with any |e :: Expr| yields a symbolic value and set of configurations that exhaustively describe any concrete execution path resulting from evaluating |e| under any |nv'| that is equal up-to-unification to |nv_s|.
 \end{enumerate}
 
