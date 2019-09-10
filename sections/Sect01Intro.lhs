@@ -28,7 +28,7 @@ The motivation for this paper is to bring similar benefits as found in miniKanre
 
 Rosette~\cite{TorlakB13,TorlakB14} is a solver-aided language that extends Racket~\cite{FelleisenFFKBMT15} to provide framework for implementing solver-aided domain-specific languages, by means of a symbolic virtual machine and symbolic compiler.
 This VM brings the benefits of symbolic execution and model checking to languages implemented in Rosette via general-purpose symbolic abstractions that support sophisticated symbolic reasoning, beyond the relatively simple constraints found in (most variants of) miniKanren.
-A main goal of Rosette seems is to implement solver-aided languages, but the symbolic abstractions and techniques that Rosette implements could also be used to address the problem that is the motivation for this paper, namely the problem of automatically deriving symbolic executors from ``traditional'' definitional interpreters.
+A main goal of Rosette is to implement solver-aided languages, but the symbolic abstractions and techniques that Rosette implements could also be used to address the problem that is the motivation for this paper, namely the problem of automatically deriving symbolic executors from ``traditional'' definitional interpreters.
 
 There has been much work on symbolic execution in the literature on software engineering; e.g.,~\cite{GodefroidKS05,SenMA05,BurnimS08,LiGR11,SenA06,AnandPV07,ArtziKDTDPE10,LindnerAL18}. 
 Many of these frameworks are so-called \emph{concolic} frameworks that work by instrumenting a concrete language runtime to track \emph{symbolic path constraints}.
