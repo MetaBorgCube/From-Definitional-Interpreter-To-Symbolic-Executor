@@ -47,7 +47,7 @@ The rest of this paper is structured as follows.
 In \cref{sec:def-interp} we introduce a definitional interpreter for a language with recursion and pattern matching.
 In \cref{sec:towards-sym-exc} we present a definitional interpretation of the effects, by means of a free monad, using a small-step semantics execution strategy.
 In \cref{sec:sym-exc} we generalize the definitional interpretation of effects from \cref{sec:towards-sym-exc}, to obtain a symbolic executor, whose correctness we discuss in \cref{sec:correctness}.
-Finally, in \cref{sec:case-study} we discuss a case study application of the symbolic executor: generating tests for definitional interpreters. \Cref{sec:conclusion} concludes.
+Finally, in \cref{sec:case-study} we discuss a case study application of the symbolic executor: generating tests for definitional interpreters, and \Cref{sec:conclusion} concludes.
 
 
 
