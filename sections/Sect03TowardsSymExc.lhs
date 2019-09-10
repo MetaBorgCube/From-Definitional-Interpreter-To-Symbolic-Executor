@@ -120,8 +120,7 @@ step (Step (Match v (Cases ((p, m) : bs))) k) =
   case vmatch (v, p) of
     Just nv ->
       return (Step (Local (\ nv_0 -> nv ++ nv_0) m) k)
-    Nothing ->
-      step (Step (Match v (Cases bs)) k)
+    Nothing -> step (Step (Match v (Cases bs)) k)
 \end{code}
 %if False
 \begin{code}
@@ -151,9 +150,7 @@ The driver loop for the step function is straightforwardly defined to continue i
 drive ::  Thread_c ConcreteValue ->
           ConcreteMonad ConcreteValue
 drive (Stop x)  = return x
-drive c         = do
-  r <- step c
-  drive r
+drive c         = do r <- step c; drive r
 \end{code}
 Thus an alternative definitional interpreter for the language in \cref{fig:def-interp} is given by the following function:
 \begin{code}

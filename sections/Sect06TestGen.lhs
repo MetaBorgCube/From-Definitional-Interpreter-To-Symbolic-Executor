@@ -23,9 +23,9 @@ The Haskell version of this paper contains the test cases that we invite interes
 Using GHCi (v8.6.4), symbolic execution takes <1s to synthesize each test program.
 
 \citet{ByrdBRM17} also compare interpreters with lexical and dynamic scope in their functional pearl on using miniKanren to solve programming problems.
-Their implementation is carefully engineered to use miniKanren's relational programming constructs in ways that allow them to yield example terms more efficiently than naively written interpreters would.
-Our case study does not come anyway near the efficiency of the interpreters with lexical and dynamic scope of \citet{ByrdBRM17}, which synthesize 100 example programs with different results in <2s.
-But in our case study we did not attempt to optimize the interpreter implementations either,  neither at the meta-language nor the object-language level, to make it easier for the symbolic execution strategy to find solutions.
+Their implementation is engineered to use miniKanren's relational programming constructs to allow them to yield example terms more efficiently than naively written interpreters.
+Our case study does not come near the efficiency of the interpreters with lexical and dynamic scope of \citet{ByrdBRM17}, which synthesize 100 example programs in <2s.
+But we did not attempt to optimize the interpreter implementations either,  neither at the meta-language nor the object-language level, to make it easier for the symbolic execution strategy to find solutions.
 
 %if False
 \begin{code}

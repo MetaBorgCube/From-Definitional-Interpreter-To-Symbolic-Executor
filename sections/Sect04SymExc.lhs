@@ -294,8 +294,8 @@ drive_s ts =
       drive_s ts'
 \end{code}
 A configuration comprises a value, an environment which may contain terms with symbolic variables, and a list of negative unification constraints (|Unifier_N|).
-The |drive_s| function takes a list of configurations as input, and uses |isDone| to check if one of the input configurations is a value, and returns a pair of that configuration and the remaining configurations.
-If none of the input configurations are values already, each input configuration is |iterate|d by a single transition step, and |drive_s| is called recursively on the resulting list of configurations.
+The |drive_s| function takes a list of configurations as input, uses |isDone| to check if one of the input configurations is a value, and returns a pair of that configuration and the remaining configurations.
+If none of the input configurations are values, each input configuration is |iterate|d by a single transition step, and |drive_s| is called recursively on the resulting list of configurations.
 
 %if False
 \begin{code}
@@ -352,7 +352,7 @@ runSteps_s e nv = fmap (mapFst (\ (v, _, _) -> v))
 \paragraph{A Constraint Language for Symbolic Execution}
 
 We have shown how to alter the interpretation of the effects in the definitional interpreter presented in \cref{fig:def-interp}, to derive a symbolic executor from the concrete definitional interpreter from \cref{sec:towards-sym-exc}.
-Invoking this symbolic executor with an input program that contains symbolic variables gives rise to a breadth-first search over how these symbolic variables can be instantiated to synthesize a concrete program without symbolic variables in it.
+Invoking this symbolic executor with input programs that contain symbolic variables gives rise to a breadth-first search over possible instantiations of symbolic variables, to synthesize concrete terms.
 We provide programmers with control over which parts of a program (s)he wishes to synthesize by defining a small constraint language on top of the definitional interpreter from \cref{fig:def-interp}.
 
 The syntax for this constraint language is summarized in \cref{fig:constraint-syntax}.
